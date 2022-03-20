@@ -18,18 +18,19 @@ plotted = False
 
 while running:
     pygame.draw.circle(screen, (0,0,255), (startx,starty), 2)
+    pose = np.matrix([startx, starty, 0])
 
     if not plotted:
         for speed in car.wheelSpeeds:
             # plot a point and an arrow for new position and orientation
-            q = car.Kinematics(speed, np.pi/4)
-            phi = q.item(0)
-            x = q.item(1) + startx
-            y = q.item(2) + starty
+            q = car.Kinematics(speed, pose)
+            x = q.item(0)
+            y = q.item(1)
+            phi = q.item(2)
             # pygame.draw.circle(screen, (0,255,0), (x,y), 10)
-            pygame.draw.line(screen, (0,255,0), (x,y), (x + 10*np.cos(phi), y + 10*np.sin(phi)), width = 5)
+            pygame.draw.line(screen, (0,255,0), (x,y), (x + 10*np.cos(phi), y + 10*np.sin(phi)), width=3)
+            pygame.display.flip()
         plotted = True
-        pygame.display.flip()
     
 
     for event in pygame.event.get():

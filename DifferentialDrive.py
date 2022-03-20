@@ -20,7 +20,7 @@ class DifferentialDrive(pygame.sprite.Sprite):
 
         # Kinematic parameters:
         # self.steeringAngles = []  # Steering angles to test each step. 
-        self.r      = 50    # Wheel radius
+        self.r      = 100    # Wheel radius
         self.d      = 50    # Distance from wheel to centerline of vehicle
         self.phi    = 0     # Heading of robot
         self.A = np.matrix( [[-self.r/(2*self.d), self.r/(2*self.d)], \
@@ -28,7 +28,7 @@ class DifferentialDrive(pygame.sprite.Sprite):
             [self.r*np.sin(self.phi)/2, self.r*np.sin(self.phi)/2], \
             [1, 0], \
             [0, 1]] )
-        self.dt = 1.0
+        self.dt = 5.0
         self.wheelSpeeds = [(np.pi/2, np.pi), (np.pi, np.pi), (np.pi, np.pi/2)]
 
     def CalcA(self, phi):
@@ -39,10 +39,31 @@ class DifferentialDrive(pygame.sprite.Sprite):
             [0, 1]] )
         return A
 
-    def Kinematics(self, wheelSpeeds, phi):
-        u = np.matrix([[wheelSpeeds[0]], [wheelSpeeds[1]]])
-        A = self.CalcA(phi)
-        q = A * u * self.dt
+    def Kinematics(self, wheelSpeeds, curPose):
+        ul = wheelSpeeds[0]
+        ur = wheelSpeeds[1]
+        x = curPose.item(0)
+        y = curPose.item(1)
+        theta = curPose.item(2)
+
+        if ur == ul:
+            R = 0
+        else: 
+            R = self.d * (ul + ur)/(ur - ul)
+
+        omega = ( ur + ul ) / (2 * self.d) 
+        icc = np.matrix([x - R*np.sin(theta), y + R*np.cos(theta)])
+
+        rot = np.matrix([[np.cos(omega*self.dt), -np.sin(omega*self.dt), 0], \
+            [np.sin(omega*self.dt), np.cos(omega*self.dt), 0], \
+            [0, 0, 1]])
+
+        b = np.matrix([[x - icc.item(0)], \
+            [y - icc.item(1)], \
+            [theta]])
+
+        c = np.matrix([[icc.item(0)], [icc.item(1)], [omega*self.dt]])
+        q = rot * b + c
         return q
 
     def Dynamics(self):
