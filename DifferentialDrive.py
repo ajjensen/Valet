@@ -20,29 +20,43 @@ class DifferentialDrive(pygame.sprite.Sprite):
 
         # Kinematic parameters:
         # self.steeringAngles = []  # Steering angles to test each step. 
-        self.r      = 50    # Wheel radius
-        self.d      = 50    # Distance from wheel to centerline of vehicle
+        self.r      = 10    # Wheel radius
+        self.d      = 10    # Distance from wheel to centerline of vehicle
         self.phi    = 0     # Heading of robot
-        self.A = np.matrix( [[-self.r/(2*self.d), self.r/(2*self.d)], \
-            [self.r*np.cos(self.phi)/2, self.r*np.cos(self.phi)/2], \
+        self.A = np.matrix( [[self.r*np.cos(self.phi)/2, self.r*np.cos(self.phi)/2], \
             [self.r*np.sin(self.phi)/2, self.r*np.sin(self.phi)/2], \
-            [1, 0], \
-            [0, 1]] )
-        self.dt = 1.0
-        self.wheelSpeeds = [(np.pi/2, np.pi), (np.pi, np.pi), (np.pi, np.pi/2)]
+            [-self.r/(2*self.d), self.r/(2*self.d)]] )
+        self.dt = 0.1
+        # self.wheelSpeeds = [(np.pi/2, np.pi), (3*np.pi/4, 3*np.pi/4), (np.pi, np.pi/2)]
+        self.wheelSpeeds = [(0, np.pi), (np.pi/2, np.pi/2), (np.pi, 0)]
 
-    def CalcA(self, phi):
-        A = np.matrix( [[-self.r/(2*self.d), self.r/(2*self.d)], \
-            [self.r*np.cos(phi)/2, self.r*np.cos(phi)/2], \
-            [self.r*np.sin(phi)/2, self.r*np.sin(phi)/2], \
-            [1, 0], \
-            [0, 1]] )
+    def CalcA(self, prevPose):
+        x0 = prevPose[0]
+        y0 = prevPose[1]
+        phi0 = prevPose[2]
+
+        A = np.matrix( [[self.r*np.cos(phi0)/2, self.r*np.cos(phi0)/2], \
+            [self.r*np.sin(phi0)/2, self.r*np.sin(phi0)/2], \
+            [-self.r/(2*self.d), self.r/(2*self.d)]] )
+        
         return A
 
-    def Kinematics(self, wheelSpeeds, phi):
-        u = np.matrix([[wheelSpeeds[0]], [wheelSpeeds[1]]])
-        A = self.CalcA(phi)
-        q = A * u * self.dt
+    def Kinematics(self, wheelSpeeds, ic):
+        ul = wheelSpeeds[0]
+        ur = wheelSpeeds[1]
+
+        x0 = ic[0]
+        y0 = ic[1]
+        phi0 = ic[2]
+
+        vl = ul*self.r
+        vr = ur*self.r
+        v = self.d * (vr + vl) 
+
+        phi = self.r * (ur - ul) / (self.d * 2) + phi0
+        x = v * np.cos(phi) * self.dt + x0
+        y = v * np.sin(phi) * self.dt + y0
+        q = np.matrix([[x], [y], [phi]])
         return q
 
     def Dynamics(self):
