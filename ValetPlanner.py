@@ -6,6 +6,8 @@ from Ackerman import Ackerman
 from DifferentialDrive import DifferentialDrive
 from Obstacle import Obstacle
 from Trailer import Trailer
+from pygame.locals import (RLEACCEL)
+
 
 class ValetPlanner:
 
@@ -26,7 +28,7 @@ class ValetPlanner:
             pass
 
         # instantiate obstacles
-        carpos1 = (100, 700)
+        carpos1 = (900, 700)
         carpos2 = (500, 700)
         self.car_obstacle1 = Obstacle('Car', carpos1, 0.15)
         self.car_obstacle2 = Obstacle('Car', carpos2, 0.15)
@@ -35,6 +37,7 @@ class ValetPlanner:
         # create groups
         self.all_sprites = pygame.sprite.Group()
         self.all_obstacles = pygame.sprite.Group()
+        # create group for possible paths
 
         self.all_sprites.add(self.vehicle)
         self.all_sprites.add(self.car_obstacle1)
@@ -59,7 +62,6 @@ class ValetPlanner:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-            
 
             # updates the contents of the screen
             self.screen.fill((255, 255, 255))
