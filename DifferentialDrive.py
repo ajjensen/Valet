@@ -1,11 +1,10 @@
 #!/usr/bin/python3
-from re import U
 import numpy as np
 import pygame
 
 class DifferentialDrive(pygame.sprite.Sprite):
 
-    def __init__(self, startPos = (100,100)):
+    def __init__(self, startPos = (100,100,0)):
         self.imageFileName = 'DiffDrive.png'
         super(DifferentialDrive, self).__init__()
 
@@ -15,20 +14,20 @@ class DifferentialDrive(pygame.sprite.Sprite):
         oldSize = img_temp.get_size()
         newSize = (int(oldSize[0]*scaleFactor), int(oldSize[1]*scaleFactor))
         self.surf = pygame.transform.scale(img_temp, newSize)
-        self.rect = self.surf.get_rect(center = startPos)
-        self.pos = startPos
+        self.pos = startPos[0:2]
+        self.rect = self.surf.get_rect(center = self.pos)
 
         # Kinematic parameters:
         # self.steeringAngles = []  # Steering angles to test each step. 
         self.r      = 10    # Wheel radius
         self.d      = 10    # Distance from wheel to centerline of vehicle
-        self.phi    = 0     # Heading of robot
+        self.phi    = startPos[2]     # Heading of robot
         self.A = np.matrix( [[self.r*np.cos(self.phi)/2, self.r*np.cos(self.phi)/2], \
             [self.r*np.sin(self.phi)/2, self.r*np.sin(self.phi)/2], \
             [-self.r/(2*self.d), self.r/(2*self.d)]] )
-        self.dt = 0.1
-        # self.wheelSpeeds = [(np.pi/2, np.pi), (3*np.pi/4, 3*np.pi/4), (np.pi, np.pi/2)]
-        self.wheelSpeeds = [(0, np.pi), (np.pi/2, np.pi/2), (np.pi, 0)]
+        self.dt = 0.05
+        self.wheelSpeeds = [(np.pi/2, np.pi), (3*np.pi/4, 3*np.pi/4), (np.pi, np.pi/2)]
+        # self.wheelSpeeds = [(0, np.pi), (np.pi/2, np.pi/2), (np.pi, 0)]
 
     def CalcA(self, prevPose):
         x0 = prevPose[0]
@@ -67,8 +66,8 @@ class DifferentialDrive(pygame.sprite.Sprite):
         # unimplented
         pass
 
-    def CalcCost(self):
-        pass
+    def CalcCost(self, current, next):
+        return 1
 
     def Move(self):
         pass
